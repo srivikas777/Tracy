@@ -93,12 +93,16 @@ def get_applications():
     userid = result[0]
     c.execute('SELECT company_name, position_name, status FROM applications WHERE userid=?', (userid,))
     applications = c.fetchall()
-    
+    dict={"Applied":[],"Interview":[],"Online Assesment":[],"Rejected":[]}
+    for a in applications:
+        # print(a)
+        dict[a[2]].append(a)
+    print(dict)
     # Close the database connection
     conn.close()
     
     # Return the applications data as JSON
-    response = jsonify({'applications': applications})
+    response = jsonify({'applications': dict})
     return response
 
 if __name__ == '__main__':
