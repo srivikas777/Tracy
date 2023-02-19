@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
+import requests
 import sqlite3
 
 app = Flask(__name__)
@@ -93,17 +94,69 @@ def get_applications():
     userid = result[0]
     c.execute('SELECT company_name, position_name, status FROM applications WHERE userid=?', (userid,))
     applications = c.fetchall()
-    dict={"Applied":[],"Interview":[],"Online Assesment":[],"Rejected":[]}
+    data_list=[
+{
+    "title": "Applied",
+    "data": [],
+  },
+  {
+    "title": "Online Assessment",
+    "data": [],
+  },
+  {
+    "title": "Interview",
+    "data": [],
+  },
+  {
+    "title": "Rejected",
+    "data": [],
+  },
+]
     for a in applications:
-        # print(a)
-        dict[a[2]].append(a)
-    print(dict)
+        if a[2]=="Applied":
+            data_list[0]['data'].append(a)
+        elif a[2]=="Interview":
+            data_list[2]["data"].append(a)
+        elif a[2]=="Online Assesment":
+            data_list[1]["data"].append(a)
+        elif a[2]=="Rejected":
+            data_list[3]["data"].append(a)
+
     # Close the database connection
     conn.close()
     
     # Return the applications data as JSON
-    response = jsonify({'applications': dict})
+    response = jsonify({'applications': data_list   })
     return response
+
+# UpLead API endpoint
+API_URL = 'https://api.uplead.com/v2/company-name-to-domain'
+
+# UpLead API access key
+API_ACCESS_KEY = 'bce217ccda0935d80b96a3368a31c9e5'
+
+@app.route('/logo', methods=['POST'])
+@cross_origin()
+def get_logo():
+    # Get the company name from the POST request
+    company_name = request.json['company_name']
+
+    # Make a request to the UpLead API to get company data
+    response = requests.post(API_URL, json={
+        'access_key': API_ACCESS_KEY,
+        "company_name": company_name
+    })
+    print(response)
+    # Check if the request was successful
+    if response.status_code != 200:
+        return jsonify({'error': 'Failed to fetch company data'}), 500
+
+    # Extract the logo from the response
+    data = response.json()
+    logo_url = data['data'][0]['logo']
+
+    # Return the logo URL as a JSON response
+    return jsonify({'logo_url': logo_url})
 
 if __name__ == '__main__':
     app.run(debug=True)
