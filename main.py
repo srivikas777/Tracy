@@ -92,7 +92,7 @@ def get_applications():
     
     # Retrieve the applications data based on the user ID
     userid = result[0]
-    c.execute('SELECT company_name, position_name, status FROM applications WHERE userid=?', (userid,))
+    c.execute('SELECT company_name, position_name, status, content FROM applications WHERE userid=?', (userid,))
     applications = c.fetchall()
     data_list=[
 {
