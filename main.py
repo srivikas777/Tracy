@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS, cross_origin
 import sqlite3
 
 app = Flask(__name__)
@@ -29,6 +30,7 @@ print("Applications table created successfully")
 
 # API endpoint for user registration
 @app.route('/register', methods=['POST'])
+@cross_origin()
 def register():
     
     conn = sqlite3.connect('./db.sqlite3')
@@ -47,6 +49,7 @@ def register():
 
 # API endpoint for user login
 @app.route('/login', methods=['POST'])
+@cross_origin()
 def login(): 
     conn = sqlite3.connect('./db.sqlite3')
     print("Opened database successfully")
