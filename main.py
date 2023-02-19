@@ -43,9 +43,11 @@ def register():
     try:
         conn.execute("INSERT INTO users (email, name, password) VALUES (?, ?, ?)", (email, name, password))
         conn.commit()
-        return jsonify({'message': 'Registration successful.'}), 201
+        response = jsonify({'message': 'Registration successful.','email':email,'name':name}), 201
+        return response
     except sqlite3.IntegrityError as e:
-        return jsonify({'error': 'User with this email already exists.'}), 400
+         response = jsonify({'error': 'User with this email already exists.'}), 400
+         return response
 
 # API endpoint for user login
 @app.route('/login', methods=['POST'])
@@ -61,9 +63,11 @@ def login():
     user = cursor.fetchone()
     
     if user:
-        return jsonify({'message': 'Login successful.'}), 200
+        response = jsonify({'message': 'Login successful.'}), 200
+        return response
     else:
-        return jsonify({'error': 'Invalid email or password.'}), 401
+        response = jsonify({'error': 'Invalid email or password.'}), 401
+        return response
 
 if __name__ == '__main__':
     app.run(debug=True)
