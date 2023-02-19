@@ -69,6 +69,37 @@ def login():
     else:
         response = jsonify({'error': 'Invalid email or password.'}), 401
         return response
+    
+@app.route('/get_applications', methods=['POST'])
+@cross_origin()
+def get_applications():
+    # Retrieve the email address from the request body
+    email = request.json['email']
+    
+    # Connect to the database
+    conn = sqlite3.connect('./db.sqlite3')
+    c = conn.cursor()
+    
+    # Retrieve the user ID based on the email address
+    c.execute('SELECT userid FROM users WHERE email=?', (email,))
+    result = c.fetchone()
+    
+    if not result:
+        # If the user does not exist, return a 404 error
+        response = jsonify({'error': 'User not found'}), 404
+        return response
+    
+    # Retrieve the applications data based on the user ID
+    userid = result[0]
+    c.execute('SELECT company_name, position_name, status FROM applications WHERE userid=?', (userid,))
+    applications = c.fetchall()
+    
+    # Close the database connection
+    conn.close()
+    
+    # Return the applications data as JSON
+    response = jsonify({'applications': applications})
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True)
