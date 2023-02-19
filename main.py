@@ -67,7 +67,7 @@ def get_applications():
         # return {"Company":li[0],"Job Position":li[1],"Status":li[2],"mail":email_top}
     c.execute("SELECT * FROM applications WHERE company_name=? AND position_name=?", (processed_email["Company"].split(":")[-1][1:], processed_email["Job Position"].split(":")[-1][1:]))
     current_data = c.fetchone()
-    print("current_data",current_data)
+    print("current_data",current_data)  
     if not current_data:
         print("no data foud")
         c.execute('SELECT company_name, position_name, status, content FROM applications WHERE userid=?', (userid,))
@@ -98,7 +98,7 @@ def get_applications():
     for a in applications:
         if a[2]=="Applied" or a[2]=="Accepted" or a[2]==" Accepted":
             data_list[0]['data'].append(a)
-        elif a[2]=="Interview":
+        elif a[2]=="Interview" or a[2]==" Interview call":
             data_list[2]["data"].append(a)
         elif a[2]=="Online Assesment":
             data_list[1]["data"].append(a)
