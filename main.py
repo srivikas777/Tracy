@@ -64,7 +64,7 @@ def get_applications():
         return response
     
     userid = result[0]
-    c.execute("SELECT * FROM applications WHERE company_name=? AND position_name=?", (processed_email["Company"].split(":")[-1].trim(), processed_email["Job Position"].split(":")[-1].trim()))
+    c.execute("SELECT * FROM applications WHERE company_name=? AND position_name=?", (processed_email["Company"].split(":")[-1][1:], processed_email["Job Position"].split(":")[-1][1:]))
     current_data = c.fetchone()
     print("current_data",current_data)
 
@@ -74,13 +74,11 @@ def get_applications():
         print("no data foud")
         c.execute('SELECT company_name, position_name, status, content FROM applications WHERE userid=?', (userid,))
         length=len(c.fetchall())
-        print( (processed_email["Company"].split(":")[-1][1:],processed_email["Job Position"].split(":")[-1].trim(),processed_email["Status"].split(":")[-1],userid,""))
-        c.execute("INSERT INTO applications (email_code,company_name, position_name, status,userid,content) VALUES (?,?,?,?,?,?)",(str(length+11),processed_email["Company"].split(":")[-1].trim(),processed_email["Job Position"].split(":")[-1].trim(),processed_email["Status"].split(":")[-1].trim(),userid,""))
+        print( (processed_email["Company"].split(":")[-1][1:],processed_email["Job Position"].split(":")[-1][1:],processed_email["Status"].split(":")[-1],userid,""))
+        c.execute("INSERT INTO applications (email_code,company_name, position_name, status,userid,content) VALUES (?,?,?,?,?,?)",(str(length+11),processed_email["Company"].split(":")[-1][1:],processed_email["Job Position"].split(":")[-1],processed_email["Status"].split(":")[-1],userid,""))
         conn.commit()
     
-        
-        
-    c.execute('SELECT company_name, position_name, status, content FROM applications WHERE userid=?', (userid,))
+        c.execute('SELECT company_name, position_name, status, content FROM applications WHERE userid=?', (userid,))
     applications = c.fetchall()
     data_list=[
 {
