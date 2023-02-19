@@ -64,17 +64,22 @@ def get_applications():
         return response
     
     userid = result[0]
-        # return {"Company":li[0],"Job Position":li[1],"Status":li[2],"mail":email_top}
-    c.execute("SELECT * FROM applications WHERE company_name=? AND position_name=?", (processed_email["Company"].split(":")[-1][1:], processed_email["Job Position"].split(":")[-1][1:]))
+    c.execute("SELECT * FROM applications WHERE company_name=? AND position_name=?", (processed_email["Company"].split(":")[-1].trim(), processed_email["Job Position"].split(":")[-1].trim()))
     current_data = c.fetchone()
-    print("current_data",current_data)  
+    print("current_data",current_data)
+
+
+
     if not current_data:
         print("no data foud")
         c.execute('SELECT company_name, position_name, status, content FROM applications WHERE userid=?', (userid,))
         length=len(c.fetchall())
-        print( (processed_email["Company"].split(":")[-1][1:],processed_email["Job Position"].split(":")[-1][1:],processed_email["Status"].split(":")[-1],userid,""))
-        c.execute("INSERT INTO applications (email_code,company_name, position_name, status,userid,content) VALUES (?,?,?,?,?,?)",(str(length+11),processed_email["Company"].split(":")[-1][1:],processed_email["Job Position"].split(":")[-1],processed_email["Status"].split(":")[-1],userid,""))
+        print( (processed_email["Company"].split(":")[-1][1:],processed_email["Job Position"].split(":")[-1].trim(),processed_email["Status"].split(":")[-1],userid,""))
+        c.execute("INSERT INTO applications (email_code,company_name, position_name, status,userid,content) VALUES (?,?,?,?,?,?)",(str(length+11),processed_email["Company"].split(":")[-1].trim(),processed_email["Job Position"].split(":")[-1].trim(),processed_email["Status"].split(":")[-1].trim(),userid,""))
         conn.commit()
+    
+        
+        
     c.execute('SELECT company_name, position_name, status, content FROM applications WHERE userid=?', (userid,))
     applications = c.fetchall()
     data_list=[
