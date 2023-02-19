@@ -57,13 +57,14 @@ def login():
     print("Opened database successfully")
     data = request.get_json()
     email = data['email']
+    name = data['name']
     password = data['password']
     
     cursor = conn.execute("SELECT * FROM users WHERE email=? AND password=?", (email, password))
     user = cursor.fetchone()
     
     if user:
-        response = jsonify({'message': 'Login successful.'}), 200
+        response = jsonify({'message': 'Login successful.','email':email,'name':name}), 200
         return response
     else:
         response = jsonify({'error': 'Invalid email or password.'}), 401
