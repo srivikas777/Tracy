@@ -2,34 +2,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import requests
 import sqlite3
+from get_mail import get_topN_mails
+from gpt_api import gpt_api
 
 app = Flask(__name__)
 
-# SQLite3 database connection
-# conn = sqlite3.connect('./db.sqlite3')
-# print("Opened database successfully")
-
-# # Create users table if it does not exist
-# conn.execute('''CREATE TABLE IF NOT EXISTS users (
-#    userid INTEGER PRIMARY KEY,
-#    email TEXT UNIQUE,
-#    name TEXT,
-#    password TEXT
-# );''')
-# print("Users table created successfully")
-
-# # Create applications table if it does not exist
-# conn.execute('''CREATE TABLE IF NOT EXISTS applications (
-#    email_code TEXT PRIMARY KEY,
-#    company_name TEXT,
-#    position_name TEXT,
-#    status TEXT,
-#    userid INTEGER,
-#    FOREIGN KEY (userid) REFERENCES users(userid)
-# );''')
 print("Applications table created successfully")
 
-# API endpoint for user registration
 @app.route('/register', methods=['POST'])
 @cross_origin()
 def register():
@@ -50,7 +29,6 @@ def register():
          response = jsonify({'error': 'User with this email already exists.'}), 400
          return response
 
-# API endpoint for user login
 @app.route('/login', methods=['POST'])
 @cross_origin()
 def login(): 
@@ -74,24 +52,29 @@ def login():
 @app.route('/get_applications', methods=['POST'])
 @cross_origin()
 def get_applications():
-    # Retrieve the email address from the request body
+    processed_email=gpt_api()
     email = request.json['email']
-    
-    # Connect to the database
     conn = sqlite3.connect('./db.sqlite3')
     c = conn.cursor()
-    
-    # Retrieve the user ID based on the email address
     c.execute('SELECT userid FROM users WHERE email=?', (email,))
     result = c.fetchone()
     
     if not result:
-        # If the user does not exist, return a 404 error
         response = jsonify({'error': 'User not found'}), 404
         return response
     
-    # Retrieve the applications data based on the user ID
     userid = result[0]
+        # return {"Company":li[0],"Job Position":li[1],"Status":li[2],"mail":email_top}
+    c.execute("SELECT * FROM applications WHERE company_name=? AND position_name=?", (processed_email["Company"].split(":")[-1], processed_email["Job Position"].split(":")[-1]))
+    current_data = c.fetchone()
+    print("current_data",current_data)
+    if not current_data:
+        print("no data foud")
+        c.execute('SELECT company_name, position_name, status, content FROM applications WHERE userid=?', (userid,))
+        length=len(c.fetchall())
+        print( (processed_email["Company"].split(":")[-1][1:],processed_email["Job Position"].split(":")[-1][1:],processed_email["Status"].split(":")[-1],userid,""))
+        c.execute("INSERT INTO applications (email_code,company_name, position_name, status,userid,content) VALUES (?,?,?,?,?,?)",(str(length+2),processed_email["Company"].split(":")[-1],processed_email["Job Position"].split(":")[-1],processed_email["Status"].split(":")[-1],userid,""))
+        conn.commit()
     c.execute('SELECT company_name, position_name, status, content FROM applications WHERE userid=?', (userid,))
     applications = c.fetchall()
     data_list=[
@@ -113,19 +96,17 @@ def get_applications():
   },
 ]
     for a in applications:
-        if a[2]=="Applied":
+        if a[2]=="Applied" or a[2]=="Accepted" or a[2]==" Accepted":
             data_list[0]['data'].append(a)
         elif a[2]=="Interview":
             data_list[2]["data"].append(a)
         elif a[2]=="Online Assesment":
             data_list[1]["data"].append(a)
-        elif a[2]=="Rejected":
+        elif a[2]=="Rejected" or  a[2]==" Rejected":
             data_list[3]["data"].append(a)
 
-    # Close the database connection
     conn.close()
     
-    # Return the applications data as JSON
     response = jsonify({'applications': data_list   })
     return response
 
